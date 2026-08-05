@@ -21,17 +21,17 @@ action :add do
       ignore_failure true
       not_if "getent group #{group}"
     end
-  
+
     execute 'create_user' do
       command "/usr/sbin/useradd -r -g #{group} #{user}"
       ignore_failure true
       not_if "getent passwd #{user}"
     end
-  
+
     dnf_package 'redborder-alarm-engine' do
       action :upgrade
     end
-  
+
     directory rb_alarm_engine_config_dir do
       owner user
       group group
@@ -79,3 +79,4 @@ action :remove do
     Chef::Log.error(e.message)
   end
 end
+
