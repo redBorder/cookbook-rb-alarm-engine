@@ -1,0 +1,7 @@
+unified_mode     'true'
+name             'rb-alarm-engine'
+maintainer       'Eneo Tecnología S.L.'
+maintainer_email 'dvanhoucke@redborder.com'
+license          'AGPL-3.0'
+description      'Installs/Configures redBorder alarm engine'
+version          '0.0.1'
