@@ -79,4 +79,3 @@ action :remove do
     Chef::Log.error(e.message)
   end
 end
-
