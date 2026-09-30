@@ -22,10 +22,11 @@ action :add do
       not_if "getent group #{group}"
     end
 
-    execute 'create_user' do
-      command "/usr/sbin/useradd -r -g #{group} #{user}"
-      ignore_failure true
-      not_if "getent passwd #{user}"
+    user user do
+      gid group
+      shell '/sbin/nologin'
+      system true
+      action :create
     end
 
     dnf_package 'redborder-alarm-engine' do
