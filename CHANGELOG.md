@@ -1,6 +1,10 @@
 cookbook-rb-alarm-engine CHANGELOG
 ===============
 
+## 0.0.3
+  - jsoto
+    - Change user shell
+
 ## 0.0.2
 
   - manegron
