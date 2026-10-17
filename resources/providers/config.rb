@@ -2,17 +2,26 @@
 #
 # Provider:: config
 #
+include RbAlarmEngine::Helpers
+
 action :add do
   begin
     user = new_resource.user
     group = new_resource.group
     rb_alarm_engine_config_dir = new_resource.rb_alarm_engine_config_dir
     redis_password = new_resource.redis_password
+    internal_api_token = new_resource.internal_api_token.to_s.strip
+    internal_api_token = rb_internal_api_token if internal_api_token.empty?
 
     has_valid_password = !redis_password.nil? && !redis_password.to_s.strip.empty?
 
     unless has_valid_password
       Chef::Log.warn('Skipping redborder-alarm-engine deployment/start: redis_password is missing or blank.')
+      return
+    end
+
+    if internal_api_token.nil? || internal_api_token.empty?
+      Chef::Log.warn('Skipping redborder-alarm-engine deployment/start: cannot derive the webui internal API token (data bag passwords/webui_secret missing).')
       return
     end
 
@@ -52,7 +61,8 @@ action :add do
       group group
       mode '0640'
       variables(
-        redis_password: redis_password
+        redis_password: redis_password,
+        internal_api_token: internal_api_token
       )
       notifies :restart, 'service[redborder-alarm-engine]', :delayed
     end
