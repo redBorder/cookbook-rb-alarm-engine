@@ -1,6 +1,11 @@
 cookbook-rb-alarm-engine CHANGELOG
 ===============
 
+## 0.0.4
+
+  - manegron
+    - [f3bf03f] SEC-04: stop hardcoding the webui internal API token
+
 ## 0.0.3
   - jsoto
     - Change user shell
