@@ -1,6 +1,13 @@
 cookbook-rb-alarm-engine CHANGELOG
 ===============
 
+## 0.0.4
+
+  - Juan Soto
+    - [dc1acd4] Merge pull request #3 from redBorder/bugfix/#26961_internal_alarms_api_token
+  - manegron
+    - [f3bf03f] SEC-04: stop hardcoding the webui internal API token
+
 ## 0.0.3
   - jsoto
     - Change user shell
