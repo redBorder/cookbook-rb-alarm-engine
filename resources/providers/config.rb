@@ -9,7 +9,9 @@ action :add do
     user = new_resource.user
     group = new_resource.group
     rb_alarm_engine_config_dir = new_resource.rb_alarm_engine_config_dir
-    redis_password = new_resource.redis_password
+    openbao = new_resource.openbao
+    # With OpenBao config.yml is an agent template: the agent puts the password in, in /run only
+    redis_password = openbao ? '{{ with secret "secret/data/redis" }}{{ .Data.data.pass }}{{ end }}' : new_resource.redis_password
     internal_api_token = new_resource.internal_api_token.to_s.strip
     internal_api_token = rb_internal_api_token if internal_api_token.empty?
 
@@ -54,17 +56,38 @@ action :add do
       action :nothing
     end
 
-    template "#{rb_alarm_engine_config_dir}/config.yml" do
-      source 'config.yml.erb'
-      cookbook 'rb-alarm-engine'
-      owner user
-      group group
-      mode '0640'
-      variables(
-        redis_password: redis_password,
-        internal_api_token: internal_api_token
+    if openbao
+      openbao_secret_file 'redborder-alarm-engine-config' do
+        source 'config.yml.erb'
+        cookbook 'rb-alarm-engine'
+        variables(
+          redis_password: redis_password,
+          internal_api_token: internal_api_token
       )
-      notifies :restart, 'service[redborder-alarm-engine]', :delayed
+        destination '/run/rb-secrets/redborder-alarm-engine/config.yml'
+        owner 'root'
+        group group
+        mode '0640'
+        unit 'redborder-alarm-engine'
+      end
+
+      link "#{rb_alarm_engine_config_dir}/config.yml" do
+        to '/run/rb-secrets/redborder-alarm-engine/config.yml'
+        notifies :restart, 'service[redborder-alarm-engine]', :delayed
+      end
+    else
+      template "#{rb_alarm_engine_config_dir}/config.yml" do
+        source 'config.yml.erb'
+        cookbook 'rb-alarm-engine'
+        owner user
+        group group
+        mode '0640'
+        variables(
+          redis_password: redis_password,
+          internal_api_token: internal_api_token
+        )
+        notifies :restart, 'service[redborder-alarm-engine]', :delayed
+      end
     end
 
     service 'start_redborder_alarm_engine' do

@@ -5,3 +5,5 @@ maintainer_email 'dvanhoucke@redborder.com'
 license          'AGPL-3.0'
 description      'Installs/Configures redBorder alarm engine'
 version          '0.0.4'
+
+depends 'openbao'
