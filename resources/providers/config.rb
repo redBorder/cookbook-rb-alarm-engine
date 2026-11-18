@@ -10,11 +10,10 @@ action :add do
     group = new_resource.group
     rb_alarm_engine_config_dir = new_resource.rb_alarm_engine_config_dir
     openbao = new_resource.openbao
-    # With OpenBao config.yml is an agent template: the agent puts the password in, in /run only
     redis_password = openbao ? '{{ with secret "secret/data/redis" }}{{ .Data.data.pass }}{{ end }}' : new_resource.redis_password
     internal_api_token = new_resource.internal_api_token.to_s.strip
     if openbao
-      # Same HMAC as rb_internal_api_token, computed by the agent from webui_secret in OpenBao
+      # same HMAC as rb_internal_api_token
       internal_api_token = OpenBao.expr('webui_secret', %(hmacSHA256Hex "#{RbAlarmEngine::Helpers::INTERNAL_API_TOKEN_CONTEXT}" .Data.data.secret))
     elsif internal_api_token.empty?
       internal_api_token = rb_internal_api_token
