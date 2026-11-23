@@ -9,7 +9,7 @@ action :add do
     user = new_resource.user
     group = new_resource.group
     rb_alarm_engine_config_dir = new_resource.rb_alarm_engine_config_dir
-    redis_password = '{{ with secret "secret/data/redis" }}{{ .Data.data.pass }}{{ end }}'
+    redis_password = OpenBao.ref('redis', 'pass')
     # same HMAC as rb_internal_api_token
     internal_api_token = OpenBao.expr('webui_secret', %(hmacSHA256Hex "#{RbAlarmEngine::Helpers::INTERNAL_API_TOKEN_CONTEXT}" .Data.data.secret))
 
