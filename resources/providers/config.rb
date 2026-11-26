@@ -9,21 +9,9 @@ action :add do
     user = new_resource.user
     group = new_resource.group
     rb_alarm_engine_config_dir = new_resource.rb_alarm_engine_config_dir
-    redis_password = new_resource.redis_password
-    internal_api_token = new_resource.internal_api_token.to_s.strip
-    internal_api_token = rb_internal_api_token if internal_api_token.empty?
-
-    has_valid_password = !redis_password.nil? && !redis_password.to_s.strip.empty?
-
-    unless has_valid_password
-      Chef::Log.warn('Skipping redborder-alarm-engine deployment/start: redis_password is missing or blank.')
-      return
-    end
-
-    if internal_api_token.nil? || internal_api_token.empty?
-      Chef::Log.warn('Skipping redborder-alarm-engine deployment/start: cannot derive the webui internal API token (data bag passwords/webui_secret missing).')
-      return
-    end
+    redis_password = OpenBao.ref('redis', 'pass')
+    # same HMAC as rb_internal_api_token
+    internal_api_token = OpenBao.expr('webui_secret', %(hmacSHA256Hex "#{RbAlarmEngine::Helpers::INTERNAL_API_TOKEN_CONTEXT}" .Data.data.secret))
 
     execute 'create_group' do
       command "/usr/sbin/groupadd -r #{group}"
@@ -54,16 +42,22 @@ action :add do
       action :nothing
     end
 
-    template "#{rb_alarm_engine_config_dir}/config.yml" do
+    openbao_secret_file 'redborder-alarm-engine-config' do
       source 'config.yml.erb'
       cookbook 'rb-alarm-engine'
-      owner user
-      group group
-      mode '0640'
       variables(
         redis_password: redis_password,
         internal_api_token: internal_api_token
       )
+      destination '/run/rb-secrets/redborder-alarm-engine/config.yml'
+      owner 'root'
+      group group
+      mode '0640'
+      unit 'redborder-alarm-engine'
+    end
+
+    link "#{rb_alarm_engine_config_dir}/config.yml" do
+      to '/run/rb-secrets/redborder-alarm-engine/config.yml'
       notifies :restart, 'service[redborder-alarm-engine]', :delayed
     end
 
